@@ -1,15 +1,25 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, jsonify
+from supabase import create_client, Client
 import os
+from dotenv import load_dotenv
+from datetime import date
 
-app = Flask(
-    __name__,
-    template_folder=os.path.join(os.path.dirname(__file__), '../templates'),
-    static_folder=os.path.join(os.path.dirname(__file__), '../static')
-)
+app = Flask(__name__)
+
+load_dotenv()
+
+supabaseUrl = os.getenv("SUPABASE_URL")
+supabaseKey = os.getenv("SUPABASE_KEY")
+supabase: Client = create_client(supabaseUrl, supabaseKey)
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    today = date.today().isoformat()
+
+    response = supabase.table("birthday").select("name", "date").eq("date", today).execute()
+    bdName = [item['name'] for item in response.data] if response.data else []
+
+    return render_template('index.html', name=bdName, today=today)
 
 @app.route('/math')
 def math():
