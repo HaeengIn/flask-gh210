@@ -16,8 +16,8 @@ supabase: Client = create_client(supabaseUrl, supabaseKey)
 def index():
     today = date.today().isoformat()
 
-    response = supabase.table("birthday").select("name", "date").eq("date", today).execute()
-    bdName = [item['name'] for item in response.data] if response.data else []
+    bd = supabase.table("birthday").select("name", "date").eq("date", today).execute()
+    bdName = [item['name'] for item in bd.data] if bd.data else []
 
     return render_template('index.html', name=bdName, today=today)
 
