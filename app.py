@@ -18,6 +18,21 @@ def index():
 
     bd = supabase.table("birthday").select("name", "date").eq("date", today).execute()
     bdName = [item['name'] for item in bd.data] if bd.data else []
+    
+    test = supabase.table("performance").select("subject", "date").execute()
+    rows = test.data()
+    alertSubject = None
+    alertDate = None
+
+    for row in rows:
+        subject = row["subject"]
+        dbDate = datetime.strptime(row["data"], "%Y-%m-%d").date()
+        dday = (dbDate - today).days
+    """
+    if 0 <= dday =< 7:
+    results.append({
+        'subject'
+    })"""
 
     return render_template('index.html', name=bdName, today=today)
 
