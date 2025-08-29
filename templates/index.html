@@ -15,6 +15,11 @@
         2025 교하고등학교 2학년 10반 수행평가 안내지 클라우드
     </h1>
     <a class="fade-up" href="notice">📢 공지사항</a>
+    <p class="fade-up">
+        {% for bdName in name %}
+            오늘은 <strong>{{ bdName }}</strong>의 생일입니다!
+        {% endfor %}
+    </p>
     <div class="grid">
         <button class="fade-up" onclick="location.href='/math'">수학</button>
         <button class="fade-up" onclick="location.href='/eng'">영어</button>
