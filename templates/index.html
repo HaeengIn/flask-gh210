@@ -20,6 +20,14 @@
             오늘은 <strong>{{ bdName }}</strong>의 생일입니다!
         {% endfor %}
     </p>
+
+    <!-- D-Day 메시지 출력 -->
+    <div class="fade-up">
+        {% for msg in dday_msgs %}
+            <div>{{ msg }}</div>
+        {% endfor %}
+    </div>
+
     <div class="grid">
         <button class="fade-up" onclick="location.href='/math'">수학</button>
         <button class="fade-up" onclick="location.href='/eng'">영어</button>

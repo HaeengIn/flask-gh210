@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, jsonify
 from supabase import create_client, Client
 import os
 from dotenv import load_dotenv
-from datetime import date
+from datetime import date, datetime
 
 app = Flask(__name__)
 
@@ -14,27 +14,47 @@ supabase: Client = create_client(supabaseUrl, supabaseKey)
 
 @app.route('/')
 def index():
-    today = date.today().isoformat()
+    today = date.today()
 
-    bd = supabase.table("birthday").select("name", "date").eq("date", today).execute()
+    bd = supabase.table("birthday").select("name", "date").eq("date", today.isoformat()).execute()
     bdName = [item['name'] for item in bd.data] if bd.data else []
-    
-    test = supabase.table("performance").select("subject", "date").execute()
-    rows = test.data()
-    alertSubject = None
-    alertDate = None
 
-    for row in rows:
-        subject = row["subject"]
-        dbDate = datetime.strptime(row["data"], "%Y-%m-%d").date()
-        dday = (dbDate - today).days
-    """
-    if 0 <= dday =< 7:
-    results.append({
-        'subject'
-    })"""
+    # performance 테이블에서 subject와 date 가져오기
+    perf = supabase.table("performance").select("subject,date").execute()
+    perf_list = perf.data or []
 
-    return render_template('index.html', name=bdName, today=today)
+    # dday별로 과목 그룹화 (0 <= dday <= 7)
+    dday_groups: dict[int, list[str]] = {}
+    for item in perf_list:
+        dstr = item.get("date")
+        subj = item.get("subject") or ""
+        if not dstr:
+            continue
+        try:
+            pdate = date.fromisoformat(dstr)
+        except Exception:
+            try:
+                pdate = datetime.strptime(dstr, "%Y-%m-%d").date()
+            except Exception:
+                continue
+        dday = (pdate - today).days
+        if 0 <= dday <= 7:
+            dday_groups.setdefault(dday, []).append(subj)
+
+    # 메시지 생성: 같은 D-Day면 과목명 쉼표 연결, D-Day 별로 별도 라인
+    dday_msgs: list[str] = []
+    for d in sorted(dday_groups.keys()):
+        subjects = [s for s in dday_groups[d] if s]
+        if not subjects:
+            continue
+        subj_str = ", ".join(subjects)
+        if d == 0:
+            msg = f"오늘은 {subj_str} 수행평가가 실시되는 날입니다!"
+        else:
+            msg = f"{subj_str} 수행평가까지 {d}일 남았습니다!"
+        dday_msgs.append(msg)
+
+    return render_template('index.html', name=bdName, today=today.isoformat(), dday_msgs=dday_msgs)
 
 @app.route('/math')
 def math():
